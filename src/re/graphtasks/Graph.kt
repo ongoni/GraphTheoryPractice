@@ -7,7 +7,7 @@ import kotlin.collections.ArrayList
 
 class Graph {
 
-    private data class Edge(val from: Int, val to: Int)
+    private data class Edge(val from: Int, val to: Int, val weight: Double = 0.0)
 
     private var adjacencyList: MutableMap<Int, MutableList<Edge>> = mutableMapOf()
 
@@ -32,8 +32,6 @@ class Graph {
 
         val size = lineList[0].toInt()
         lineList.removeAt(0)
-
-        adjacencyList = mutableMapOf()
 
         (0 until size)
                 .map { i -> lineList[i].split(' ').map { it.toInt() } }
@@ -68,6 +66,10 @@ class Graph {
         if (!adjacencyList[from]!!.any { x -> x.to == to }) return
 
         adjacencyList[from]!!.removeIf { x -> x.from == from && x.to == to }
+    }
+
+    fun outcomeDegree(data: Int) : Int {
+        return adjacencyList[data]!!.size
     }
 
     fun show() {
