@@ -79,6 +79,14 @@ class Graph {
         }
     }
 
+    fun outdegreeOf(data: Int) : Int {
+        return adjacencyList[data]!!.size
+    }
+
+    fun indegreeOf(data: Int) : Int {
+        return adjacencyList.values.map { it.count { x -> x.to == data } }.sum()
+    }
+
     fun show() {
         println("Adjacency list:")
         adjacencyList.forEach { x ->
