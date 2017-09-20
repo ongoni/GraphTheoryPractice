@@ -142,6 +142,36 @@ class Graph {
         println()
     }
 
+    fun join(graph: Graph) {
+        graph.adjacencyList.forEach {
+            if (adjacencyList.containsKey(it.key)) {
+                adjacencyList[it.key]!!.addAll(graph.adjacencyList[it.key]!!.filter {
+                    x -> adjacencyList[it.key]!!.none { y -> y.to == x.to }
+                })
+                adjacencyList[it.key]!!.sortBy { x -> x.to }
+            } else {
+                adjacencyList.put(it.key, it.value)
+            }
+        }
+    }
+
+    fun union(graph: Graph) : Graph {
+        val result = Graph(this)
+
+        graph.adjacencyList.forEach {
+            if (result.adjacencyList.containsKey(it.key)) {
+                result.adjacencyList[it.key]!!.addAll(graph.adjacencyList[it.key]!!.filter {
+                    x -> result.adjacencyList[it.key]!!.none { y -> y.to == x.to }
+                })
+                result.adjacencyList[it.key]!!.sortBy { x -> x.to }
+            } else {
+                result.adjacencyList.put(it.key, it.value)
+            }
+        }
+
+        return result
+    }
+
     fun show() {
         println("Adjacency list:")
         adjacencyList.forEach { x ->
