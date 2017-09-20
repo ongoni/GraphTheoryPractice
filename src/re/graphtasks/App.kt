@@ -17,4 +17,6 @@ fun main(args: Array<String>) {
 
     println(graph.outdegreeOf(1) / 2.0)
     println(graph3.indegreeOf(3))
+    graph.bfs(1)
+    graph.dfs(1)
 }

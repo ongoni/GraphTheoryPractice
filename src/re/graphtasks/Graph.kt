@@ -93,6 +93,55 @@ class Graph {
         return adjacencyList.values.map { it.count { x -> x.to == vertex } }.sum()
     }
 
+    fun bfs(from: Int) {
+        if (!adjacencyList.containsKey(from)) return
+
+        val used: MutableSet<Int> = mutableSetOf()
+        val queue: Queue<Int> = Queue()
+
+        used.add(from)
+        queue.push(from)
+        print(from.toString() + " ")
+
+        while (!queue.isEmpty()) {
+            val current = queue.pop()
+
+            for (vertex in getAdjacentVerticesOf(current)) {
+                if (!used.contains(vertex)) {
+                    queue.push(vertex)
+                    used.add(vertex)
+
+                    print(vertex.toString() + " ")
+                }
+            }
+        }
+        println()
+    }
+
+    fun dfs(from: Int) {
+        if (!adjacencyList.containsKey(from)) return
+
+        val used: MutableSet<Int> = mutableSetOf()
+        val stack: Stack<Int> = Stack()
+
+        used.add(from)
+        stack.push(from)
+        print(from.toString() + " ")
+
+        while (!stack.isEmpty()) {
+            val current = stack.pop()
+
+            val adjacentVertices = getAdjacentVerticesOf(current).filter { x -> !used.contains(x) }
+            if (!adjacentVertices.isEmpty()) {
+                used.add(adjacentVertices.first())
+                stack.push(adjacentVertices.first())
+
+                print(adjacentVertices.first().toString() + " ")
+            }
+        }
+        println()
+    }
+
     fun show() {
         println("Adjacency list:")
         adjacencyList.forEach { x ->
