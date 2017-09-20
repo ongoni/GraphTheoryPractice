@@ -172,6 +172,24 @@ class Graph {
         return result
     }
 
+    fun intersect(graph: Graph) : Graph {
+        val result = Graph()
+
+        val maxSizedGraph = if (this.adjacencyList.size >= graph.adjacencyList.size) this else graph
+        val minSizedGraph = if (this.adjacencyList.size < graph.adjacencyList.size) this else graph
+
+        maxSizedGraph.adjacencyList.forEach {
+            if (minSizedGraph.adjacencyList.containsKey(it.key)) {
+                result.adjacencyList.put(
+                        it.key,
+                        it.value.intersect(minSizedGraph.adjacencyList[it.key]!!)
+                                .toMutableList())
+            }
+        }
+
+        return result
+    }
+
     fun show() {
         println("Adjacency list:")
         adjacencyList.forEach { x ->
