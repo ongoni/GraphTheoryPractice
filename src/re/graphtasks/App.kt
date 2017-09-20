@@ -15,6 +15,6 @@ fun main(args: Array<String>) {
 //    graph3.removeEdge(4, 1)
 //    graph3.show()
 
-    print(graph.outdegreeOf(1) / 2.0)
-    print(graph3.indegreeOf(3))
+    println(graph.outdegreeOf(1) / 2.0)
+    println(graph3.indegreeOf(3))
 }

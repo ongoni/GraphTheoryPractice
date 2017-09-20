@@ -23,8 +23,10 @@ class Graph {
 
     constructor(path: String) {
         val lineList = mutableListOf<String>()
-        File(path).useLines { lines ->
-            lines.forEach { lineList.add(it) }
+        File(path).useLines {
+            lines -> lines.forEach {
+                lineList.add(it)
+            }
         }
 
         val size = lineList[0].toInt()
@@ -79,12 +81,16 @@ class Graph {
         }
     }
 
-    fun outdegreeOf(data: Int) : Int {
-        return adjacencyList[data]!!.size
+    private fun getAdjacentVerticesOf(vertex: Int) : MutableList<Int> {
+        return adjacencyList[vertex]!!.map { x -> x.to }.toMutableList()
     }
 
-    fun indegreeOf(data: Int) : Int {
-        return adjacencyList.values.map { it.count { x -> x.to == data } }.sum()
+    fun outdegreeOf(vertex: Int) : Int {
+        return adjacencyList[vertex]!!.size
+    }
+
+    fun indegreeOf(vertex: Int) : Int {
+        return adjacencyList.values.map { it.count { x -> x.to == vertex } }.sum()
     }
 
     fun show() {
