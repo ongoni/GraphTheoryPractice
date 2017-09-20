@@ -1,9 +1,6 @@
 package re.graphtasks
 
 import java.io.File
-import java.io.InputStream
-import java.util.*
-import kotlin.collections.ArrayList
 
 class Graph {
 
@@ -56,20 +53,30 @@ class Graph {
         }
     }
 
-    fun addEdge(from: Int, to: Int) {
+    fun addEdge(from: Int, to: Int, weight: Double = 0.0, directed: Boolean = false) {
         if (adjacencyList[from]!!.any { x -> x.to == to }) return
 
-        adjacencyList[from]!!.add(Edge(from, to))
+        if (directed) {
+            adjacencyList[from]!!.add(Edge(from, to, weight))
+        } else {
+            adjacencyList[from]!!.add(Edge(from, to, weight))
+            if (!adjacencyList[to]!!.any { x -> x.to == from }) {
+                adjacencyList[to]!!.add(Edge(to, from, weight))
+            }
+        }
     }
 
-    fun removeEdge(from: Int, to: Int) {
+    fun removeEdge(from: Int, to: Int, directed: Boolean = false) {
         if (!adjacencyList[from]!!.any { x -> x.to == to }) return
 
-        adjacencyList[from]!!.removeIf { x -> x.from == from && x.to == to }
-    }
-
-    fun outcomeDegree(data: Int) : Int {
-        return adjacencyList[data]!!.size
+        if (directed) {
+            adjacencyList[from]!!.removeIf { x -> x.to == to }
+        } else {
+            adjacencyList[from]!!.removeIf { x -> x.to == to }
+            if (adjacencyList[to]!!.any { x -> x.to == from }) {
+                adjacencyList[to]!!.removeIf { x -> x.to == from }
+            }
+        }
     }
 
     fun show() {

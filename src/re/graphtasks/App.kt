@@ -3,7 +3,7 @@ package re.graphtasks
 fun main(args: Array<String>) {
     val graph = Graph("graphInput.txt")
 //    val graph2 = Graph(graph)
-//    val graph3 = Graph(4)
+    val graph3 = Graph(3)
 //    graph.show()
 //    graph2.show()
 //    graph3.show()
@@ -15,5 +15,4 @@ fun main(args: Array<String>) {
 //    graph3.removeEdge(4, 1)
 //    graph3.show()
 
-    print(graph.outcomeDegree(1) / 2.0)
 }
