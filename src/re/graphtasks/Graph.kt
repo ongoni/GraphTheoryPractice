@@ -142,6 +142,16 @@ class Graph {
         println()
     }
 
+    fun getGraphWithRemovedEdgesBetweenOddVertices() : Graph {
+        val result = Graph(this)
+
+        result.adjacencyList.forEach {
+            it.value.removeIf { x -> x.to % 2 == 1 && x.from % 2 == 1 }
+        }
+
+        return result
+    }
+
     fun join(graph: Graph) {
         graph.adjacencyList.forEach {
             if (adjacencyList.containsKey(it.key)) {
