@@ -8,6 +8,8 @@ class Graph {
 
     private var adjacencyList: MutableMap<Int, MutableList<Edge>> = mutableMapOf()
 
+    var directed = false
+
     constructor(count: Int = 3) {
         for (i in 1..count) {
             adjacencyList.put(i, (1..count)
@@ -19,9 +21,10 @@ class Graph {
 
     constructor(from: Graph) {
         adjacencyList = from.adjacencyList.toMutableMap()
+        directed = from.directed
     }
 
-    constructor(path: String) {
+    constructor(path: String, directed: Boolean = false) {
         val lineList = mutableListOf<String>()
         File(path).useLines {
             lines -> lines.forEach {
@@ -32,6 +35,7 @@ class Graph {
         val size = lineList[0].toInt()
         lineList.removeAt(0)
 
+        this.directed = directed
         (0 until size)
                 .map { i -> lineList[i].split(' ').map { it.toInt() } }
                 .forEach { items ->
@@ -55,7 +59,7 @@ class Graph {
         }
     }
 
-    fun addEdge(from: Int, to: Int, weight: Double = 0.0, directed: Boolean = false) {
+    fun addEdge(from: Int, to: Int, weight: Double = 0.0) {
         if (adjacencyList[from]!!.any { x -> x.to == to }) return
 
         if (directed) {
@@ -68,7 +72,7 @@ class Graph {
         }
     }
 
-    fun removeEdge(from: Int, to: Int, directed: Boolean = false) {
+    fun removeEdge(from: Int, to: Int) {
         if (!adjacencyList[from]!!.any { x -> x.to == to }) return
 
         if (directed) {
