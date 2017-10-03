@@ -16,5 +16,10 @@ fun main(args: Array<String>) {
 //    union.show()
     graph.show()
     val graph3 = graph.getGraphWithRemovedEdgesBetweenOddVertices()
+    val graph4 = Graph("directedGraph.txt", true)
+//    println(graph.isDirected())
+//    println(graph3.isDirected())
+//    println(graph4.isDirected())
+    graph4.show()
     graph3.show()
 }
