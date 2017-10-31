@@ -1,6 +1,7 @@
 package re.graphtasks
 
 import java.io.File
+import kotlin.streams.asSequence
 
 class Graph {
 
@@ -8,11 +9,10 @@ class Graph {
 
     private var adjacencyList: MutableMap<Int, MutableList<Edge>> = mutableMapOf()
 
-    private var directed = false
-
-    fun isDirected() = directed
+    public val directed: Boolean?
 
     constructor(count: Int = 3) {
+        directed = false
         for (i in 1..count) {
             adjacencyList.put(
                     i,
@@ -30,18 +30,10 @@ class Graph {
     }
 
     constructor(path: String, directed: Boolean = false) {
-        val lineList = mutableListOf<String>()
-        var size = 0
-        File(path).useLines { lines -> {
-                size = lines.count()
-                lines
-                        .toList()
-                        .subList(1, lines.count())
-                        .forEach { lineList.add(it) }
-            }
-        }
-
+        val lineList = File(path).bufferedReader().lines().asSequence().toMutableList()
+        val size = lineList.count()
         this.directed = directed
+
         (0 until size)
                 .map { i -> lineList[i].split(' ').map { it.toInt() } }
                 .forEach { items ->
@@ -73,7 +65,7 @@ class Graph {
     fun addEdge(from: Int, to: Int, weight: Int = 0) {
         if (adjacencyList[from]!!.any { x -> x.to == to }) return
 
-        if (directed) {
+        if (directed!!) {
             adjacencyList[from]!!.add(Edge(from, to, weight))
         } else {
             adjacencyList[from]!!.add(Edge(from, to, weight))
@@ -86,7 +78,7 @@ class Graph {
     fun removeEdge(from: Int, to: Int) {
         if (!adjacencyList[from]!!.any { x -> x.to == to }) return
 
-        if (directed) {
+        if (directed!!) {
             adjacencyList[from]!!.removeIf { x -> x.to == to }
         } else {
             adjacencyList[from]!!.removeIf { x -> x.to == to }
