@@ -4,7 +4,7 @@ import java.io.File
 
 class Graph {
 
-    private data class Edge(val from: Int, val to: Int, val weight: Double = 0.0)
+    private data class Edge(val from: Int, val to: Int, val weight: Int = 0)
 
     private var adjacencyList: MutableMap<Int, MutableList<Edge>> = mutableMapOf()
 
@@ -14,10 +14,13 @@ class Graph {
 
     constructor(count: Int = 3) {
         for (i in 1..count) {
-            adjacencyList.put(i, (1..count)
+            adjacencyList.put(
+                    i,
+                    (1..count)
                             .filter { x -> x != i }
                             .map { Edge(i, it) }
-                            .toMutableList())
+                            .toMutableList()
+            )
         }
     }
 
@@ -30,7 +33,7 @@ class Graph {
         val lineList = mutableListOf<String>()
         var size = 0
         File(path).useLines { lines -> {
-                size = lines.first().toInt()
+                size = lines.count()
                 lines
                         .toList()
                         .subList(1, lines.count())
@@ -42,8 +45,13 @@ class Graph {
         (0 until size)
                 .map { i -> lineList[i].split(' ').map { it.toInt() } }
                 .forEach { items ->
-                    adjacencyList.put(items[0], items.subList(1, items.size)
-                            .map { Edge(items[0], it) }.toMutableList())
+                    adjacencyList.put(
+                            items[0],
+                            items
+                                    .subList(1, items.size)
+                                    .map { Edge(items[0], it) }
+                                    .toMutableList()
+                    )
                 }
     }
 
@@ -62,7 +70,7 @@ class Graph {
         }
     }
 
-    fun addEdge(from: Int, to: Int, weight: Double = 0.0) {
+    fun addEdge(from: Int, to: Int, weight: Int = 0) {
         if (adjacencyList[from]!!.any { x -> x.to == to }) return
 
         if (directed) {
@@ -219,4 +227,3 @@ class Graph {
     }
 
 }
-
