@@ -1,8 +1,7 @@
 package re.graphtasks
 
 fun main(args: Array<String>) {
-    val graph = Graph("graphInput.txt")
-    val graph2 = Graph(4)
+    val graph = Graph("directedGraph.txt")
     graph.show()
-    graph2.show()
+    graph.bfs(4)
 }
