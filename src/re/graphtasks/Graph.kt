@@ -88,17 +88,11 @@ class Graph {
         }
     }
 
-    private fun getAdjacentVerticesOf(vertex: Int) : MutableList<Int> {
-        return adjacencyList[vertex]!!.map { x -> x.to }.toMutableList()
-    }
+    private fun getAdjacentVerticesOf(vertex: Int) : MutableList<Int> = adjacencyList[vertex]!!.map { x -> x.to }.toMutableList()
 
-    fun outdegreeOf(vertex: Int) : Int {
-        return adjacencyList[vertex]!!.size
-    }
+    fun outdegreeOf(vertex: Int) : Int = adjacencyList[vertex]!!.size
 
-    fun indegreeOf(vertex: Int) : Int {
-        return adjacencyList.values.map { it.count { x -> x.to == vertex } }.sum()
-    }
+    fun indegreeOf(vertex: Int) : Int = adjacencyList.values.map { it.count { x -> x.to == vertex } }.sum()
 
     fun bfs(from: Int) {
         if (!adjacencyList.containsKey(from)) return
