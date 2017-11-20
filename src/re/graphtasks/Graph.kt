@@ -24,6 +24,11 @@ class Graph {
         }
     }
 
+    private constructor(adjacencyList: MutableMap<Int, MutableList<Edge>>, directed: Boolean = false) {
+        this.adjacencyList = adjacencyList
+        this.directed = directed
+    }
+
     constructor(from: Graph) {
         adjacencyList = from.adjacencyList.toMutableMap()
         directed = from.directed
@@ -94,7 +99,7 @@ class Graph {
 
     fun indegreeOf(vertex: Int) : Int = adjacencyList.values.map { it.count { x -> x.to == vertex } }.sum()
 
-    fun bfs(from: Int) {
+    fun bfs(from: Int, handler: (Int) -> Unit) {
         if (!adjacencyList.containsKey(from)) return
 
         val used: MutableSet<Int> = mutableSetOf()
@@ -102,24 +107,21 @@ class Graph {
 
         used.add(from)
         queue.push(from)
-        print(from.toString() + " ")
 
         while (!queue.isEmpty()) {
             val current = queue.pop()
+            handler(current)
 
             for (vertex in getAdjacentVerticesOf(current)) {
                 if (!used.contains(vertex)) {
                     queue.push(vertex)
                     used.add(vertex)
-
-                    print(vertex.toString() + " ")
                 }
             }
         }
-        println()
     }
 
-    fun dfs(from: Int) {
+    fun dfs(from: Int, handler: (Int) -> Unit) {
         if (!adjacencyList.containsKey(from)) return
 
         val used: MutableSet<Int> = mutableSetOf()
@@ -127,20 +129,17 @@ class Graph {
 
         used.add(from)
         stack.push(from)
-        print(from.toString() + " ")
 
         while (!stack.isEmpty()) {
             val current = stack.pop()
+            handler(current)
 
             val adjacentVertices = getAdjacentVerticesOf(current).filter { x -> !used.contains(x) }
             if (!adjacentVertices.isEmpty()) {
                 used.add(adjacentVertices.first())
                 stack.push(adjacentVertices.first())
-
-                print(adjacentVertices.first().toString() + " ")
             }
         }
-        println()
     }
 
     fun getGraphWithRemovedEdgesBetweenOddVertices() : Graph {
@@ -207,6 +206,24 @@ class Graph {
         }
 
         return result
+    }
+
+    fun getInvertedGraph() : Graph {
+        val edges: MutableList<Edge> = mutableListOf()
+        this.adjacencyList.values.forEach { edges.addAll(it) }
+
+        val invertedEdges = edges.map { Edge(it.to, it.from) }.sortedBy { x -> x.from }
+        val adjacencyList: MutableMap<Int, MutableList<Edge>> = mutableMapOf()
+        invertedEdges.forEach {
+            if (!adjacencyList.containsKey(it.from)) {
+                adjacencyList.put(
+                        it.from,
+                        invertedEdges.filter { x -> x.from == it.from }.toMutableList()
+                )
+            }
+        }
+
+        return Graph(adjacencyList)
     }
 
     fun show() {
