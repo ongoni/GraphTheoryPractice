@@ -1,6 +1,6 @@
-package re.graphtasks
+package re.graphtasks.collections
 
-class Queue<T> {
+class Stack<T> {
 
     private var items: MutableList<T> = mutableListOf()
 
@@ -9,12 +9,12 @@ class Queue<T> {
     }
 
     fun top(): T? {
-        return items.firstOrNull()
+        return items.lastOrNull()
     }
 
     fun pop(): T {
-        val item = items.first()
-        items.removeAt(0)
+        val item = items.last()
+        items.removeAt(items.lastIndex)
         return item
     }
 

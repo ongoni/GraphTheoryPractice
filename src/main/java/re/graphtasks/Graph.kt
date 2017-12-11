@@ -1,6 +1,11 @@
 package re.graphtasks
 
+import re.graphtasks.collections.Queue
+import re.graphtasks.collections.Stack
+import re.graphtasks.exceptions.NotWeightedGraphGiven
 import java.io.File
+import java.util.*
+import kotlin.Comparator
 import kotlin.streams.asSequence
 
 class Graph {
@@ -235,6 +240,28 @@ class Graph {
 
         return Graph(adjacencyList, this.directed!!, this.weighted!!)
     }
+
+//    fun kosaraju() {
+//
+//    }
+//
+//    fun dijkstra() {
+//
+//    }
+//
+//    fun prim(vertex: Int): Graph {
+//        if (!weighted!!) throw NotWeightedGraphGiven("Weighted graph expected.")
+//        val newAdjList = mutableMapOf<Int, MutableList<Edge>>()
+//        val pq: PriorityQueue<Edge> = PriorityQueue(Comparator<Edge> { o1, o2 -> o1!!.weight - o2!!.weight })
+//
+//        newAdjList.put(vertex, mutableListOf())
+//        while (newAdjList.size != adjacencyList.size) {
+//            pq.addAll(adjacencyList[vertex]!!)
+//            val edge = pq.poll()
+//        }
+//
+//        return Graph(newAdjList, this.directed!!, this.weighted)
+//    }
 
     fun show() {
         println("Adjacency list:")
