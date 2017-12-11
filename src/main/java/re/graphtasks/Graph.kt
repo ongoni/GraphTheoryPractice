@@ -10,9 +10,11 @@ class Graph {
     private var adjacencyList: MutableMap<Int, MutableList<Edge>> = mutableMapOf()
 
     public val directed: Boolean?
+    public val weighted: Boolean?
 
     constructor(count: Int = 3) {
         directed = false
+        weighted = false
         for (i in 1..count) {
             adjacencyList.put(
                     i,
@@ -24,33 +26,43 @@ class Graph {
         }
     }
 
-    private constructor(adjacencyList: MutableMap<Int, MutableList<Edge>>, directed: Boolean = false) {
+    private constructor(adjacencyList: MutableMap<Int, MutableList<Edge>>, directed: Boolean = false, weighted: Boolean = false) {
         this.adjacencyList = adjacencyList
         this.directed = directed
+        this.weighted = weighted
     }
 
     constructor(from: Graph) {
         adjacencyList = from.adjacencyList.toMutableMap()
         directed = from.directed
+        weighted = from.weighted
     }
 
-    constructor(path: String, directed: Boolean = false) {
+    constructor(path: String, directed: Boolean = false, weighted: Boolean = false) {
         val lineList = File(path).bufferedReader().lines().asSequence().toMutableList()
         val size = lineList.count()
         this.directed = directed
+        this.weighted = weighted
 
         (0 until size)
                 .map { i -> lineList[i].split(' ').map { it.toInt() } }
                 .forEach { items ->
                     adjacencyList.put(
                             items[0],
-                            items
-                                    .subList(1, items.size)
-                                    .map { Edge(items[0], it) }
-                                    .toMutableList()
+                            if (weighted)
+                                (1 until items.size step 2)
+                                        .map { Edge(items[0], items[it], items[it + 1]) }
+                                        .toMutableList()
+                            else
+                                items
+                                        .subList(1, items.size)
+                                        .map { Edge(items[0], it) }
+                                        .toMutableList()
                     )
                 }
     }
+
+    private fun getAdjacentVerticesOf(vertex: Int) : MutableList<Int> = adjacencyList[vertex]!!.map { x -> x.to }.toMutableList()
 
     fun addVertex(data: Int) {
         if (adjacencyList.any { x -> x.key == data }) return
@@ -92,8 +104,6 @@ class Graph {
             }
         }
     }
-
-    private fun getAdjacentVerticesOf(vertex: Int) : MutableList<Int> = adjacencyList[vertex]!!.map { x -> x.to }.toMutableList()
 
     fun outdegreeOf(vertex: Int) : Int = adjacencyList[vertex]!!.size
 
@@ -212,7 +222,7 @@ class Graph {
         val edges: MutableList<Edge> = mutableListOf()
         this.adjacencyList.values.forEach { edges.addAll(it) }
 
-        val invertedEdges = edges.map { Edge(it.to, it.from) }.sortedBy { x -> x.from }
+        val invertedEdges = edges.map { Edge(it.to, it.from, it.weight) }.sortedBy { x -> x.from }
         val adjacencyList: MutableMap<Int, MutableList<Edge>> = mutableMapOf()
         invertedEdges.forEach {
             if (!adjacencyList.containsKey(it.from)) {
@@ -223,7 +233,7 @@ class Graph {
             }
         }
 
-        return Graph(adjacencyList)
+        return Graph(adjacencyList, this.directed!!, this.weighted!!)
     }
 
     fun show() {
@@ -231,7 +241,7 @@ class Graph {
         adjacencyList.forEach { x ->
             print(x.key.toString() + " - ")
             x.value.forEach {
-                print(it.to.toString() + " ")
+                print(it.to.toString() + " " + if (weighted!!) "with ${it.weight}; " else "")
             }
             println()
         }

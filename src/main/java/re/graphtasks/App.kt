@@ -1,7 +1,7 @@
 package re.graphtasks
 
 fun main(args: Array<String>) {
-    val graph = Graph("directedGraph.txt")
+    val graph = Graph("weightedGraph.txt", directed = true, weighted = true)
     graph.show()
     graph.getInvertedGraph().show()
 }
