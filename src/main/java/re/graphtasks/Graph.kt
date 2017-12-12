@@ -244,24 +244,88 @@ class Graph {
 //    fun kosaraju() {
 //
 //    }
-//
-//    fun dijkstra() {
-//
-//    }
-//
-//    fun prim(vertex: Int): Graph {
-//        if (!weighted!!) throw NotWeightedGraphGiven("Weighted graph expected.")
-//        val newAdjList = mutableMapOf<Int, MutableList<Edge>>()
-//        val pq: PriorityQueue<Edge> = PriorityQueue(Comparator<Edge> { o1, o2 -> o1!!.weight - o2!!.weight })
-//
-//        newAdjList.put(vertex, mutableListOf())
-//        while (newAdjList.size != adjacencyList.size) {
-//            pq.addAll(adjacencyList[vertex]!!)
-//            val edge = pq.poll()
-//        }
-//
-//        return Graph(newAdjList, this.directed!!, this.weighted)
-//    }
+
+    fun getPendantVertices() : MutableSet<Int> = adjacencyList.filter { x -> x.value.size == 1 }.toMutableMap().keys
+
+    fun prim(vertex: Int): Graph {
+        if (!weighted!!) throw NotWeightedGraphGiven("Weighted graph expected.")
+        val used = mutableSetOf<Int>()
+        val newAdjList = mutableMapOf<Int, MutableList<Edge>>()
+        val pq: PriorityQueue<Edge> = PriorityQueue(Comparator<Edge> { o1, o2 -> o1!!.weight - o2!!.weight })
+
+        newAdjList.put(vertex, mutableListOf())
+        pq.addAll(adjacencyList[vertex]!!)
+        used.add(vertex)
+        var edge = pq.peek()
+        while (used.size != adjacencyList.keys.size) {
+            pq.removeIf { x -> (x.from == edge.from && x.to == edge.to) || (x.from == edge.to && x.to == edge.from) }
+            edge = pq.peek()
+
+            if (newAdjList.containsKey(edge.from)) newAdjList[edge.from]!!.add(edge)
+            else newAdjList.put(edge.from, mutableListOf(edge))
+
+            used.add(edge.to)
+            pq.addAll(adjacencyList[edge.to]!!)
+        }
+
+        return Graph(newAdjList, this.directed!!, this.weighted)
+    } //TODO: fix this shit
+
+    fun dijkstra(vertex: Int) {
+        val d = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
+        val p = Array(adjacencyList.keys.size, { 0 })
+        val u = Array(adjacencyList.keys.size, { false })
+        val q = Queue<Edge>()
+
+        d[vertex - 1] = 0
+        p[vertex - 1] = vertex
+
+        adjacencyList[vertex]!!.forEach { q.push(it) }
+
+        u[vertex - 1] = true
+
+        while (!q.isEmpty()) {
+            val edge = q.pop()
+
+            if (d[edge.to - 1] > d[edge.from - 1] + edge.weight) {
+                d[edge.to - 1] = d[edge.from - 1] + edge.weight
+                p[edge.to - 1] = edge.from
+
+                adjacencyList[edge.to]!!.forEach { q.push(it) }
+            }
+        }
+
+        println(d.toList())
+        println(p.toList())
+    }
+
+    fun fordBellman(vertex: Int, v1: Int, v2: Int){
+        var count = 0
+        val d = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
+
+        d[vertex - 1] = 0
+
+        while (true) {
+            var any = false
+            count++
+
+            adjacencyList.values.forEach {
+                it.forEach {
+                    if (d[it.from - 1] < Double.POSITIVE_INFINITY.toInt()) {
+                        if (d[it.to - 1] > d[it.from - 1] + it.weight) {
+                            d[it.to - 1] = d[it.from - 1] + it.weight
+                            any = true
+                        }
+                    }
+                }
+            }
+            if (!any || count > adjacencyList.keys.size) break
+        }
+
+        println(d[v1 - 1].toString() + ' ' + d[v2 - 1].toString())
+    }
+
+    fun size(): Int = adjacencyList.size
 
     fun show() {
         println("Adjacency list:")
