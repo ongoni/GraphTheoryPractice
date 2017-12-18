@@ -1,10 +1,10 @@
 package re.graphtasks
 
-import com.sun.javaws.exceptions.InvalidArgumentException
 import re.graphtasks.collections.Queue
 import re.graphtasks.collections.Stack
 import re.graphtasks.exceptions.NotWeightedGraphGivenException
 import java.io.File
+import java.lang.Double.POSITIVE_INFINITY
 import java.util.*
 import kotlin.Comparator
 import kotlin.streams.asSequence
@@ -341,13 +341,13 @@ class Graph {
         return result.union(result.getInvertedGraph()).sortByKey()
     }
 
-    fun dijkstra(vertex: Int) {
+    fun dijkstra(vertex: Int) : MutableMap<Int, Int> {
         val distances = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
-        val paths = Array(adjacencyList.keys.size, { 0 })
+        val paths = mutableMapOf<Int, Int>()
         val edgeQueue = Queue<Edge>()
 
         distances[vertex - 1] = 0
-        paths[vertex - 1] = vertex
+        paths[vertex] = vertex
 
         adjacencyList[vertex]!!.forEach { edgeQueue.push(it) }
 
@@ -356,7 +356,7 @@ class Graph {
 
             if (distances[edge.to - 1] > distances[edge.from - 1] + edge.weight) {
                 distances[edge.to - 1] = distances[edge.from - 1] + edge.weight
-                paths[edge.to - 1] = edge.from
+                paths[edge.to] = edge.from
 
                 adjacencyList[edge.to]!!.forEach {
                     edgeQueue.push(it)
@@ -366,6 +366,52 @@ class Graph {
 
         println(distances.toList())
         println(paths.toList())
+
+        return paths
+    }
+
+    fun recoverPath(paths: MutableMap<Int, Int>, vertex: Int, handler: (Int) -> Unit) {
+        if (paths[vertex] == vertex) {
+            handler(vertex)
+            return
+        }
+
+        recoverPath(paths, paths[vertex]!!, handler)
+
+        handler(vertex)
+    }
+
+    fun getEccentricity(source: Int = adjacencyList.keys.first()) : Int {
+        val dijkstraPaths = dijkstra(source)
+        var eccentricity = Int.MIN_VALUE
+        var longestPath = mutableListOf<Int>()
+
+        for (u in adjacencyList.keys) {
+            val path = mutableListOf<Int>()
+            recoverPath(dijkstraPaths, u, { x -> path.add(x) })
+
+            if (path.size - 1 > eccentricity) {
+                eccentricity = path.size - 1
+                longestPath = path
+            }
+        }
+
+        for (item in longestPath) print(item.toString() + " ")
+        return eccentricity
+    }
+
+    fun getRadius() : Int {
+        return adjacencyList.keys
+                .map { getEccentricity(it) }
+                .min()
+                ?: Int.MAX_VALUE
+    }
+
+    fun getCenter() : MutableList<Int> {
+        val radius = getRadius()
+        return adjacencyList.keys
+                .filter { getEccentricity(it) == radius }
+                .toMutableList()
     }
 
     fun fordBellman(vertex: Int, v1: Int, v2: Int){
@@ -392,6 +438,35 @@ class Graph {
         }
 
         println(distances[v1 - 1].toString() + " " + distances[v2 - 1].toString())
+    }
+
+    fun floydWarshall() {
+        val d = arrayListOf(Array(0, { 0 }))
+        val n = adjacencyList.keys.size
+
+        d.clear()
+
+        for (i in 0 until n) {
+            d.add(Array(n, { POSITIVE_INFINITY.toInt() }))
+            d[i][i] = 0
+        }
+
+        adjacencyList.forEach {
+            it.value.forEach {
+                d[it.from - 1][it.to - 1] = it.weight
+            }
+        }
+
+        for(k in 0 until n)
+            for(i in 0 until n)
+                for(j in 0 until n)
+                    if (d[i][k] < POSITIVE_INFINITY.toInt() && d[k][j] < POSITIVE_INFINITY.toInt()) {
+                        d[i][j] = Math.min(d[i][j], d[i][k] + d[k][j])
+                    }
+
+        d.forEach {
+            println(it.toList())
+        }
     }
 
     fun size(): Int = adjacencyList.size

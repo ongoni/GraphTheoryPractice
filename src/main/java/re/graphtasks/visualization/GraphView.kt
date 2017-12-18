@@ -27,6 +27,7 @@ class GraphView: View() {
         val pointColor = Color.DARKGRAY
         var prevPoint = Pair(300.0, 0.0)
         val vertices = graph.getVertices().toMutableList()
+        val edges = graph.getEdges()
 
         group {
             circle {
@@ -44,6 +45,13 @@ class GraphView: View() {
 
             for (i in 2..count) {
                 val newPoint = rotate(center, prevPoint, angle)
+//                line {
+//                    startX = prevPoint.first
+//                    startY = prevPoint.second
+//                    endX = newPoint.first
+//                    endY = newPoint.second
+//                    strokeWidth = 5.0
+//                }
                 circle {
                     centerX = newPoint.first
                     centerY = newPoint.second
