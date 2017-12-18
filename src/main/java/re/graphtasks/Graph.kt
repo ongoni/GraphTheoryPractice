@@ -1,5 +1,6 @@
 package re.graphtasks
 
+import com.sun.javaws.exceptions.InvalidArgumentException
 import re.graphtasks.collections.Queue
 import re.graphtasks.collections.Stack
 import re.graphtasks.exceptions.NotWeightedGraphGivenException
@@ -10,7 +11,7 @@ import kotlin.streams.asSequence
 
 class Graph {
 
-    private data class Edge(val from: Int, val to: Int, val weight: Int = 0)
+    data class Edge(val from: Int, val to: Int, val weight: Int = 0)
 
     private var adjacencyList: MutableMap<Int, MutableList<Edge>> = mutableMapOf()
 
@@ -54,15 +55,18 @@ class Graph {
                 .forEach { items ->
                     adjacencyList.put(
                             items[0],
-                            if (weighted)
-                                (1 until items.size step 2)
-                                        .map { Edge(items[0], items[it], items[it + 1]) }
-                                        .toMutableList()
+                            if (items.size != 1)
+                                if (weighted)
+                                    (1 until items.size step 2)
+                                            .map { Edge(items[0], items[it], items[it + 1]) }
+                                            .toMutableList()
+                                else
+                                    items
+                                            .subList(1, items.size)
+                                            .map { Edge(items[0], it) }
+                                            .toMutableList()
                             else
-                                items
-                                        .subList(1, items.size)
-                                        .map { Edge(items[0], it) }
-                                        .toMutableList()
+                                mutableListOf()
                     )
                 }
     }
@@ -76,6 +80,43 @@ class Graph {
 
         return this
     }
+
+//    private val dfsOutTime = mutableMapOf<Int, Int>()
+//    private val dfsInTime = mutableMapOf<Int, Int>()
+//    private val colors = mutableMapOf<Int, Int>()
+//    private val used = mutableSetOf<Int>()
+//    private var timer = 0
+//
+//    private fun coloredDfs() : Map<Int, Int> {
+////        if (!adjacencyList.containsKey(from)) throw InvalidArgumentException()
+//
+//        adjacencyList.keys.forEach {
+//            dfsOutTime.put(it, 0)
+//            dfsInTime.put(it, 0)
+//            colors.put(it, 0)
+//        }
+//
+//        adjacencyList.keys.forEach {
+//            if (!used.contains(it)) {
+//                recursiveDfs(it)
+//            }
+//        }
+//
+//        return dfsOutTime.toMap()
+//    }
+//
+//    private fun recursiveDfs(vertex: Int) {
+//        colors[vertex] = 1
+//        timer++
+//        dfsInTime[vertex] = timer
+//
+//        getAdjacentVerticesOf(vertex)
+//                .filter { colors[it] == 0 }
+//                .forEach { recursiveDfs(it) }
+//
+//        colors[vertex] = 2
+//        dfsOutTime[vertex] = ++timer
+//    }
 
     fun addVertex(data: Int) {
         if (adjacencyList.any { x -> x.key == data }) return
@@ -118,6 +159,20 @@ class Graph {
         }
     }
 
+    fun getVertices() = adjacencyList.keys
+
+    fun getEdges() : MutableList<Edge> {
+        val result = mutableListOf<Edge>()
+
+        adjacencyList.values.forEach {
+            result.addAll(it)
+        }
+
+        return result
+    }
+
+    fun getAdjacencyList() = adjacencyList
+
     fun outdegreeOf(vertex: Int) : Int = adjacencyList[vertex]!!.size
 
     fun indegreeOf(vertex: Int) : Int = adjacencyList.values.map { it.count { x -> x.to == vertex } }.sum()
@@ -145,7 +200,7 @@ class Graph {
     }
 
     fun dfs(from: Int, handler: (Int) -> Unit) {
-        if (!adjacencyList.containsKey(from)) return
+//        if (!adjacencyList.containsKey(from)) throw InvalidArgumentException()
 
         val used: MutableSet<Int> = mutableSetOf()
         val stack: Stack<Int> = Stack()
@@ -246,7 +301,8 @@ class Graph {
     }
 
 //    fun kosaraju() {
-//
+//        val dfsOutTime = coloredDfs()
+//        println(dfsOutTime)
 //    }
 
     fun getPendantVertices() : MutableSet<Int> = adjacencyList.filter { x -> x.value.size == 1 }.toMutableMap().keys
@@ -288,15 +344,12 @@ class Graph {
     fun dijkstra(vertex: Int) {
         val distances = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
         val paths = Array(adjacencyList.keys.size, { 0 })
-//        val u = Array(adjacencyList.keys.size, { false })
         val edgeQueue = Queue<Edge>()
 
         distances[vertex - 1] = 0
         paths[vertex - 1] = vertex
 
         adjacencyList[vertex]!!.forEach { edgeQueue.push(it) }
-
-//        u[vertex - 1] = true
 
         while (!edgeQueue.isEmpty()) {
             val edge = edgeQueue.pop()
