@@ -341,13 +341,13 @@ class Graph {
         return result.union(result.getInvertedGraph()).sortByKey()
     }
 
-    fun dijkstra(vertex: Int) : MutableMap<Int, Int> {
+    fun dijkstra(vertex: Int) : Pair<Array<Int>, MutableMap<Int, Int>> {
         val distances = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
-        val paths = mutableMapOf<Int, Int>()
+        val previous = mutableMapOf<Int, Int>()
         val edgeQueue = Queue<Edge>()
 
         distances[vertex - 1] = 0
-        paths[vertex] = vertex
+        previous[vertex] = vertex
 
         adjacencyList[vertex]!!.forEach { edgeQueue.push(it) }
 
@@ -356,7 +356,7 @@ class Graph {
 
             if (distances[edge.to - 1] > distances[edge.from - 1] + edge.weight) {
                 distances[edge.to - 1] = distances[edge.from - 1] + edge.weight
-                paths[edge.to] = edge.from
+                previous[edge.to] = edge.from
 
                 adjacencyList[edge.to]!!.forEach {
                     edgeQueue.push(it)
@@ -365,24 +365,24 @@ class Graph {
         }
 
         println(distances.toList())
-        println(paths.toList())
+        println(previous.toList())
 
-        return paths
+        return Pair(distances, previous)
     }
 
-    fun recoverPath(paths: MutableMap<Int, Int>, vertex: Int, handler: (Int) -> Unit) {
-        if (paths[vertex] == vertex) {
+    fun recoverPath(previous: MutableMap<Int, Int>, vertex: Int, handler: (Int) -> Unit) {
+        if (previous[vertex] == vertex) {
             handler(vertex)
             return
         }
 
-        recoverPath(paths, paths[vertex]!!, handler)
+        recoverPath(previous, previous[vertex]!!, handler)
 
         handler(vertex)
     }
 
     fun getEccentricity(source: Int = adjacencyList.keys.first()) : Int {
-        val dijkstraPaths = dijkstra(source)
+        val dijkstraPaths = dijkstra(source).second
         var eccentricity = Int.MIN_VALUE
         var longestPath = mutableListOf<Int>()
 
@@ -440,33 +440,54 @@ class Graph {
         println(distances[v1 - 1].toString() + " " + distances[v2 - 1].toString())
     }
 
-    fun floydWarshall() {
-        val d = arrayListOf(Array(0, { 0 }))
-        val n = adjacencyList.keys.size
+    fun getPath(from: Int, to: Int, distances: ArrayList<Array<Int>>, next: ArrayList<Array<Int>>, handler: (Int) -> Unit) {
+//        if (next[from - 1][to - 1] != from - 1) {
+//
+//            var current = from - 1
+//            while (current != to - 1) {
+//                handler(current + 1)
+//                current = next[current][to - 1]
+//            }
+//            handler(to)
+//        }
+    }
 
-        d.clear()
+    fun floydWarshall() : Pair<ArrayList<Array<Int>>, ArrayList<Array<Int>>>{
+        val distances = arrayListOf(Array(0, { 0 }))
+        val previous = arrayListOf(Array(0, { 0 }))
+        val size = adjacencyList.keys.size
 
-        for (i in 0 until n) {
-            d.add(Array(n, { POSITIVE_INFINITY.toInt() }))
-            d[i][i] = 0
+        distances.clear()
+        previous.clear()
+
+        for (i in 0 until size) {
+            distances.add(Array(size, { POSITIVE_INFINITY.toInt() }))
+            previous.add(Array(size, { 0 }))
+            distances[i][i] = 0
         }
 
         adjacencyList.forEach {
             it.value.forEach {
-                d[it.from - 1][it.to - 1] = it.weight
+                distances[it.from - 1][it.to - 1] = it.weight
             }
         }
 
-        for(k in 0 until n)
-            for(i in 0 until n)
-                for(j in 0 until n)
-                    if (d[i][k] < POSITIVE_INFINITY.toInt() && d[k][j] < POSITIVE_INFINITY.toInt()) {
-                        d[i][j] = Math.min(d[i][j], d[i][k] + d[k][j])
+        for (i in 0 until size) {
+            for (j in 0 until size) {
+                for (k in 0 until size) {
+                    if (distances[j][i] + distances[i][k] < distances[j][k] ) {
+                        distances[j][k] = Math.min(distances[j][k], distances[j][i] + distances[i][k])
+                        previous[j][k] = i
                     }
+                }
+            }
+        }
 
-        d.forEach {
+        distances.forEach {
             println(it.toList())
         }
+
+        return Pair(distances, previous)
     }
 
     fun size(): Int = adjacencyList.size

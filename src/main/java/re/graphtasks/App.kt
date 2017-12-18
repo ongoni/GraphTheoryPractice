@@ -9,7 +9,10 @@ fun main(args: Array<String>) {
 //    graph.show()
 //    graph.kosaraju()
 //    Application.launch(GraphVisualizationApp::class.java, *args)
-    println(graph.getEccentricity(3))
+//    println(graph.getEccentricity(3))
 //    println(graph.getRadius())
 //    for (item in graph.getCenter()) print(item.toString() + " ")
+//    val pair = graph.floydWarshall()
+//    graph.getPath(1, 4, pair.first, pair.second, { x -> print(x.toString() + " ") })
+    graph.fordBellman(1, 8, 5)
 }
