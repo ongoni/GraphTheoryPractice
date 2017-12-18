@@ -2,7 +2,7 @@ package re.graphtasks
 
 import re.graphtasks.collections.Queue
 import re.graphtasks.collections.Stack
-import re.graphtasks.exceptions.NotWeightedGraphGiven
+import re.graphtasks.exceptions.NotWeightedGraphGivenException
 import java.io.File
 import java.util.*
 import kotlin.Comparator
@@ -68,6 +68,14 @@ class Graph {
     }
 
     private fun getAdjacentVerticesOf(vertex: Int) : MutableList<Int> = adjacencyList[vertex]!!.map { x -> x.to }.toMutableList()
+
+    private fun sortByKey() : Graph {
+        adjacencyList = adjacencyList.toSortedMap(Comparator<Int> {
+            v1, v2 -> v1 - v2
+        })
+
+        return this
+    }
 
     fun addVertex(data: Int) {
         if (adjacencyList.any { x -> x.key == data }) return
@@ -170,13 +178,11 @@ class Graph {
     fun join(graph: Graph) {
         graph.adjacencyList.forEach {
             if (adjacencyList.containsKey(it.key)) {
-                adjacencyList[it.key]!!
-                        .addAll(
-                                graph.adjacencyList[it.key]!!
-                                        .filter {
-                                            x -> adjacencyList[it.key]!!.none { y -> y.to == x.to }
-                                        }
-                        )
+                adjacencyList[it.key]!!.addAll(
+                        graph.adjacencyList[it.key]!!.filter {
+                            x -> adjacencyList[it.key]!!.none { y -> y.to == x.to }
+                        }
+                )
                 adjacencyList[it.key]!!.sortBy { x -> x.to }
             } else {
                 adjacencyList.put(it.key, it.value)
@@ -189,13 +195,11 @@ class Graph {
 
         graph.adjacencyList.forEach {
             if (result.adjacencyList.containsKey(it.key)) {
-                result.adjacencyList[it.key]!!
-                        .addAll(
-                                graph.adjacencyList[it.key]!!
-                                        .filter {
-                                            x -> result.adjacencyList[it.key]!!.none { y -> y.to == x.to }
-                                        }
-                        )
+                result.adjacencyList[it.key]!!.addAll(
+                        graph.adjacencyList[it.key]!!.filter {
+                            x -> result.adjacencyList[it.key]!!.none { y -> y.to == x.to }
+                        }
+                )
                 result.adjacencyList[it.key]!!.sortBy { x -> x.to }
             } else {
                 result.adjacencyList.put(it.key, it.value)
@@ -248,62 +252,74 @@ class Graph {
     fun getPendantVertices() : MutableSet<Int> = adjacencyList.filter { x -> x.value.size == 1 }.toMutableMap().keys
 
     fun prim(vertex: Int): Graph {
-        if (!weighted!!) throw NotWeightedGraphGiven("Weighted graph expected.")
-        val used = mutableSetOf<Int>()
+        if (!weighted!!) throw NotWeightedGraphGivenException("Weighted graph expected.")
+
+        val usedVertices = mutableListOf<Int>()
         val newAdjList = mutableMapOf<Int, MutableList<Edge>>()
-        val pq: PriorityQueue<Edge> = PriorityQueue(Comparator<Edge> { o1, o2 -> o1!!.weight - o2!!.weight })
+        val edges: PriorityQueue<Edge> = PriorityQueue(Comparator<Edge> {
+            e1, e2 -> e1!!.weight - e2!!.weight
+        })
 
         newAdjList.put(vertex, mutableListOf())
-        pq.addAll(adjacencyList[vertex]!!)
-        used.add(vertex)
-        var edge = pq.peek()
-        while (used.size != adjacencyList.keys.size) {
-            pq.removeIf { x -> (x.from == edge.from && x.to == edge.to) || (x.from == edge.to && x.to == edge.from) }
-            edge = pq.peek()
+        usedVertices.add(vertex)
+
+        while (usedVertices.size != adjacencyList.keys.size) {
+            adjacencyList.values.forEach {
+                it.forEach {
+                    if (usedVertices.contains(it.from) && !usedVertices.contains(it.to)) {
+                        edges.add(it)
+                    }
+                }
+            }
+
+            val edge = edges.poll()
+            edges.clear()
 
             if (newAdjList.containsKey(edge.from)) newAdjList[edge.from]!!.add(edge)
             else newAdjList.put(edge.from, mutableListOf(edge))
 
-            used.add(edge.to)
-            pq.addAll(adjacencyList[edge.to]!!)
+            usedVertices.add(edge.to)
         }
 
-        return Graph(newAdjList, this.directed!!, this.weighted)
-    } //TODO: fix this shit
+        val result = Graph(newAdjList, this.directed!!, this.weighted)
+        return result.union(result.getInvertedGraph()).sortByKey()
+    }
 
     fun dijkstra(vertex: Int) {
-        val d = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
-        val p = Array(adjacencyList.keys.size, { 0 })
-        val u = Array(adjacencyList.keys.size, { false })
-        val q = Queue<Edge>()
+        val distances = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
+        val paths = Array(adjacencyList.keys.size, { 0 })
+//        val u = Array(adjacencyList.keys.size, { false })
+        val edgeQueue = Queue<Edge>()
 
-        d[vertex - 1] = 0
-        p[vertex - 1] = vertex
+        distances[vertex - 1] = 0
+        paths[vertex - 1] = vertex
 
-        adjacencyList[vertex]!!.forEach { q.push(it) }
+        adjacencyList[vertex]!!.forEach { edgeQueue.push(it) }
 
-        u[vertex - 1] = true
+//        u[vertex - 1] = true
 
-        while (!q.isEmpty()) {
-            val edge = q.pop()
+        while (!edgeQueue.isEmpty()) {
+            val edge = edgeQueue.pop()
 
-            if (d[edge.to - 1] > d[edge.from - 1] + edge.weight) {
-                d[edge.to - 1] = d[edge.from - 1] + edge.weight
-                p[edge.to - 1] = edge.from
+            if (distances[edge.to - 1] > distances[edge.from - 1] + edge.weight) {
+                distances[edge.to - 1] = distances[edge.from - 1] + edge.weight
+                paths[edge.to - 1] = edge.from
 
-                adjacencyList[edge.to]!!.forEach { q.push(it) }
+                adjacencyList[edge.to]!!.forEach {
+                    edgeQueue.push(it)
+                }
             }
         }
 
-        println(d.toList())
-        println(p.toList())
+        println(distances.toList())
+        println(paths.toList())
     }
 
     fun fordBellman(vertex: Int, v1: Int, v2: Int){
         var count = 0
-        val d = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
+        val distances = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
 
-        d[vertex - 1] = 0
+        distances[vertex - 1] = 0
 
         while (true) {
             var any = false
@@ -311,18 +327,18 @@ class Graph {
 
             adjacencyList.values.forEach {
                 it.forEach {
-                    if (d[it.from - 1] < Double.POSITIVE_INFINITY.toInt()) {
-                        if (d[it.to - 1] > d[it.from - 1] + it.weight) {
-                            d[it.to - 1] = d[it.from - 1] + it.weight
-                            any = true
-                        }
+                    if (distances[it.from - 1] < Double.POSITIVE_INFINITY.toInt()
+                            && distances[it.to - 1] > distances[it.from - 1] + it.weight) {
+                        distances[it.to - 1] = distances[it.from - 1] + it.weight
+                        any = true
                     }
                 }
+
             }
             if (!any || count > adjacencyList.keys.size) break
         }
 
-        println(d[v1 - 1].toString() + ' ' + d[v2 - 1].toString())
+        println(distances[v1 - 1].toString() + " " + distances[v2 - 1].toString())
     }
 
     fun size(): Int = adjacencyList.size
