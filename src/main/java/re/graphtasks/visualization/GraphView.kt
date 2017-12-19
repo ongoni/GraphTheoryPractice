@@ -15,12 +15,11 @@ class GraphView: View() {
                 center.second + (point.second - center.second) * Math.cos(Math.toRadians(angle))
                         + (point.first - center.first) * Math.sin(Math.toRadians(angle))
         )
-
     }
 
     override val root = stackpane {
         val graph = controller.graph
-        val angle = 360.0 / graph.size()
+        val angle = 360.0 / graph!!.size()
         val center = Pair(0.0, 0.0)
         val pointRadius = 30.0
         val pointColor = Color.DARKGRAY

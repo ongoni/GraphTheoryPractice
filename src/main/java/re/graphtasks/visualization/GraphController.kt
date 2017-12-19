@@ -5,6 +5,16 @@ import tornadofx.Controller
 
 class GraphController: Controller() {
 
-    var graph: Graph = Graph("graph examples/graphInput.txt")
+    val graph: Graph?
+
+    init {
+        print("enter path: ")
+        val path = readLine()!!
+        print("is this graph directed? ")
+        val directed = readLine()!!.toBoolean()
+        print("is this graph weighted? ")
+        val weighted = readLine()!!.toBoolean()
+        graph = Graph(path, directed, weighted)
+    }
 
 }
