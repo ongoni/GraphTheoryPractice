@@ -1,14 +1,16 @@
 package re.graphtasks.visualization
 
+import javafx.geometry.Point2D
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
+import javafx.util.Duration
 import tornadofx.*
 
 class GraphView: View() {
 
     private val controller: GraphController by inject()
 
-    private fun rotate(center: Pair<Double, Double>, point: Pair<Double, Double>, angle: Double) : Pair<Double, Double> {
+    private fun rotate(center: Pair<Double, Double>, point: Pair<Double, Double>, angle: Double): Pair<Double, Double> {
         return Pair(
                 center.first + (point.first - center.first) * Math.cos(Math.toRadians(angle))
                         - (point.second - center.second) * Math.sin(Math.toRadians(angle)),
@@ -63,8 +65,11 @@ class GraphView: View() {
                     font = Font(30.0)
                 }
             }
-
         }
-    }
 
+        val orderedVertices = mutableListOf<Vertex>()
+        graph.dfs(vertices.first(), { orderedVertices.add(vertexList.first { x -> x.id == it }) })
+
+        println()
+    }
 }
