@@ -18,6 +18,10 @@ class Graph {
     public val directed: Boolean?
     public val weighted: Boolean?
 
+    private var used = mutableSetOf<Int>()
+    private var outTimeOrder = mutableMapOf<Int, Int>()
+    private var timer = 0
+
     constructor(count: Int = 3) {
         directed = false
         weighted = false
@@ -84,42 +88,6 @@ class Graph {
         })
 
         return this
-    }
-
-    private var used = mutableSetOf<Int>()
-    private var outTimeOrder = mutableMapOf<Int, Int>()
-    private var timer = 0
-
-    private fun getOutTimeOrder() : MutableList<Int> {
-        adjacencyList.keys.forEach {
-            if (!used.contains(it)) recursiveDfs(it, {  })
-        }
-
-        return outTimeOrder.keys.toMutableList()
-    }
-
-    private fun recursiveDfs(from: Int, handler: (Int) -> Unit) {
-        used.add(from)
-        handler(from)
-
-        for (u in getAdjacentVerticesOf(from)) {
-            if (!used.contains(u)) {
-                recursiveDfs(u, handler)
-            }
-        }
-
-        outTimeOrder[from] = timer++
-    }
-
-    private fun recursiveDfsForInvertedGraph(from: Int, handler: (Int) -> Unit) {
-        used.add(from)
-        handler(from)
-
-        for (u in getAdjacentVerticesInInvertedGraph(from)) {
-            if (!used.contains(u)) {
-                recursiveDfsForInvertedGraph(u, handler)
-            }
-        }
     }
 
     fun addVertex(data: Int) {
@@ -321,6 +289,38 @@ class Graph {
         }
     }
 
+    private fun getOutTimeOrder() : MutableList<Int> {
+        adjacencyList.keys.forEach {
+            if (!used.contains(it)) recursiveDfs(it, {  })
+        }
+
+        return outTimeOrder.keys.toMutableList()
+    }
+
+    private fun recursiveDfs(from: Int, handler: (Int) -> Unit) {
+        used.add(from)
+        handler(from)
+
+        for (u in getAdjacentVerticesOf(from)) {
+            if (!used.contains(u)) {
+                recursiveDfs(u, handler)
+            }
+        }
+
+        outTimeOrder[from] = timer++
+    }
+
+    private fun recursiveDfsForInvertedGraph(from: Int, handler: (Int) -> Unit) {
+        used.add(from)
+        handler(from)
+
+        for (u in getAdjacentVerticesInInvertedGraph(from)) {
+            if (!used.contains(u)) {
+                recursiveDfsForInvertedGraph(u, handler)
+            }
+        }
+    }
+
     fun getPendantVertices() : MutableSet<Int> = adjacencyList.filter { x -> x.value.size == 1 }.toMutableMap().keys
 
     fun prim(vertex: Int): Graph {
@@ -433,8 +433,10 @@ class Graph {
     fun fordBellman(vertex: Int, v1: Int, v2: Int){
         var count = 0
         val distances = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
+        val previous = mutableMapOf<Int, Int>()
 
-        distances[vertex - 1] = 0
+        distances[vertex - 1] = -1
+        previous[vertex] = -1
 
         while (true) {
             var any = false
@@ -445,6 +447,7 @@ class Graph {
                     if (distances[it.from - 1] < Double.POSITIVE_INFINITY.toInt()
                             && distances[it.to - 1] > distances[it.from - 1] + it.weight) {
                         distances[it.to - 1] = distances[it.from - 1] + it.weight
+                        previous[it.to] = it.from
                         any = true
                     }
                 }
@@ -453,7 +456,26 @@ class Graph {
             if (!any || count > adjacencyList.keys.size) break
         }
 
-        println(distances[v1 - 1].toString() + " " + distances[v2 - 1].toString())
+        printPathForBellman(vertex, v1, distances, previous)
+        printPathForBellman(vertex, v2, distances, previous)
+    }
+
+    private fun printPathForBellman(from: Int, to: Int, distances: Array<Int>, previous: MutableMap<Int, Int>) {
+        if (distances[to - 1] != Double.POSITIVE_INFINITY.toInt()) {
+            println("shortest path from $from to $to: ")
+            val path = mutableListOf<Int>()
+            var current = to
+
+            while (current != -1) {
+                path.add(current)
+                current = previous[current]!!
+            }
+
+            path.reverse()
+            println(path)
+        } else {
+            println("no path from $from to $to")
+        }
     }
 
     fun getPath(from: Int, to: Int, distances: ArrayList<Array<Int>>, next: ArrayList<Array<Int>>,
