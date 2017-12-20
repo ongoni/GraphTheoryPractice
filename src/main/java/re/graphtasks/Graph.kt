@@ -32,7 +32,8 @@ class Graph {
         }
     }
 
-    private constructor(adjacencyList: MutableMap<Int, MutableList<Edge>>, directed: Boolean = false, weighted: Boolean = false) {
+    private constructor(adjacencyList: MutableMap<Int, MutableList<Edge>>, directed: Boolean = false,
+                        weighted: Boolean = false) {
         this.adjacencyList = adjacencyList
         this.directed = directed
         this.weighted = weighted
@@ -71,52 +72,55 @@ class Graph {
                 }
     }
 
-    private fun getAdjacentVerticesOf(vertex: Int) : MutableList<Int> = adjacencyList[vertex]!!.map { x -> x.to }.toMutableList()
+    private fun getAdjacentVerticesOf(vertex: Int): MutableList<Int>
+            = adjacencyList[vertex]!!.map { x -> x.to }.toMutableList()
 
-    private fun sortByKey() : Graph {
-        adjacencyList = adjacencyList.toSortedMap(Comparator<Int> {
-            v1, v2 -> v1 - v2
+    private fun getAdjacentVerticesInInvertedGraph(vertex: Int) : MutableList<Int>
+            = this.inverted().adjacencyList[vertex]!!.map { x -> x.to }.toMutableList()
+
+    private fun sortByKey(): Graph {
+        adjacencyList = adjacencyList.toSortedMap(Comparator<Int> { v1, v2 ->
+            v1 - v2
         })
 
         return this
     }
 
-//    private val dfsOutTime = mutableMapOf<Int, Int>()
-//    private val dfsInTime = mutableMapOf<Int, Int>()
-//    private val colors = mutableMapOf<Int, Int>()
-//    private val used = mutableSetOf<Int>()
-//    private var timer = 0
-//
-//    private fun coloredDfs() : Map<Int, Int> {
-////        if (!adjacencyList.containsKey(from)) throw InvalidArgumentException()
-//
-//        adjacencyList.keys.forEach {
-//            dfsOutTime.put(it, 0)
-//            dfsInTime.put(it, 0)
-//            colors.put(it, 0)
-//        }
-//
-//        adjacencyList.keys.forEach {
-//            if (!used.contains(it)) {
-//                recursiveDfs(it)
-//            }
-//        }
-//
-//        return dfsOutTime.toMap()
-//    }
-//
-//    private fun recursiveDfs(vertex: Int) {
-//        colors[vertex] = 1
-//        timer++
-//        dfsInTime[vertex] = timer
-//
-//        getAdjacentVerticesOf(vertex)
-//                .filter { colors[it] == 0 }
-//                .forEach { recursiveDfs(it) }
-//
-//        colors[vertex] = 2
-//        dfsOutTime[vertex] = ++timer
-//    }
+    private var used = mutableSetOf<Int>()
+    private var outTimeOrder = mutableMapOf<Int, Int>()
+    private var timer = 0
+
+    private fun getOutTimeOrder() : MutableList<Int> {
+        adjacencyList.keys.forEach {
+            if (!used.contains(it)) recursiveDfs(it, {  })
+        }
+
+        return outTimeOrder.keys.toMutableList()
+    }
+
+    private fun recursiveDfs(from: Int, handler: (Int) -> Unit) {
+        used.add(from)
+        handler(from)
+
+        for (u in getAdjacentVerticesOf(from)) {
+            if (!used.contains(u)) {
+                recursiveDfs(u, handler)
+            }
+        }
+
+        outTimeOrder[from] = timer++
+    }
+
+    private fun recursiveDfsForInvertedGraph(from: Int, handler: (Int) -> Unit) {
+        used.add(from)
+        handler(from)
+
+        for (u in getAdjacentVerticesInInvertedGraph(from)) {
+            if (!used.contains(u)) {
+                recursiveDfsForInvertedGraph(u, handler)
+            }
+        }
+    }
 
     fun addVertex(data: Int) {
         if (adjacencyList.any { x -> x.key == data }) return
@@ -282,11 +286,11 @@ class Graph {
         return result
     }
 
-    fun getInvertedGraph() : Graph {
+    fun inverted() : Graph {
         val edges: MutableList<Edge> = mutableListOf()
         this.adjacencyList.values.forEach { edges.addAll(it) }
 
-        val invertedEdges = edges.map { Edge(it.to, it.from, it.weight) }.sortedBy { x -> x.from }
+        val invertedEdges = edges.map { Edge(it.to, it.from, it.weight) }.sortedBy { x -> x.from }.toMutableList()
         val adjacencyList: MutableMap<Int, MutableList<Edge>> = mutableMapOf()
         invertedEdges.forEach {
             if (!adjacencyList.containsKey(it.from)) {
@@ -296,14 +300,26 @@ class Graph {
                 )
             }
         }
+        this.adjacencyList.keys.filter { x -> !adjacencyList.containsKey(x) }.forEach {
+            adjacencyList.put(it, mutableListOf())
+        }
 
         return Graph(adjacencyList, this.directed!!, this.weighted!!)
     }
 
-//    fun kosaraju() {
-//        val dfsOutTime = coloredDfs()
-//        println(dfsOutTime)
-//    }
+    fun kosaraju() {
+        val order = getOutTimeOrder()
+        order.reverse()
+        used = mutableSetOf()
+
+        println("Components:")
+        order.forEach {
+            if (!used.contains(it)) {
+                recursiveDfsForInvertedGraph(it, { x -> print(x.toString() + " ") })
+                println()
+            }
+        }
+    }
 
     fun getPendantVertices() : MutableSet<Int> = adjacencyList.filter { x -> x.value.size == 1 }.toMutableMap().keys
 
@@ -338,7 +354,7 @@ class Graph {
         }
 
         val result = Graph(newAdjList, this.directed!!, this.weighted)
-        return result.union(result.getInvertedGraph()).sortByKey()
+        return result.union(result.inverted()).sortByKey()
     }
 
     fun dijkstra(vertex: Int) : Pair<Array<Int>, MutableMap<Int, Int>> {
@@ -440,7 +456,8 @@ class Graph {
         println(distances[v1 - 1].toString() + " " + distances[v2 - 1].toString())
     }
 
-    fun getPath(from: Int, to: Int, distances: ArrayList<Array<Int>>, next: ArrayList<Array<Int>>, handler: (Int) -> Unit) {
+    fun getPath(from: Int, to: Int, distances: ArrayList<Array<Int>>, next: ArrayList<Array<Int>>,
+                handler: (Int) -> Unit) {
 //        if (next[from - 1][to - 1] != from - 1) {
 //
 //            var current = from - 1
