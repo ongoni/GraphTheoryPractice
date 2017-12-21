@@ -171,27 +171,6 @@ class Graph {
         }
     }
 
-    fun dfs(from: Int, handler: (Int) -> Unit) {
-//        if (!adjacencyList.containsKey(from)) throw InvalidArgumentException()
-
-        val used: MutableSet<Int> = mutableSetOf()
-        val stack: Stack<Int> = Stack()
-
-        used.add(from)
-        stack.push(from)
-
-        while (!stack.isEmpty()) {
-            val current = stack.pop()
-            handler(current)
-
-            val adjacentVertices = getAdjacentVerticesOf(current).filter { x -> !used.contains(x) }
-            if (!adjacentVertices.isEmpty()) {
-                used.add(adjacentVertices.first())
-                stack.push(adjacentVertices.first())
-            }
-        }
-    }
-
     fun getDfsOrder(from: Int) : MutableList<Int> {
         val order = mutableListOf<Int>()
 
@@ -498,7 +477,6 @@ class Graph {
                         any = true
                     }
                 }
-
             }
             if (!any || count > adjacencyList.keys.size) break
         }
@@ -524,19 +502,6 @@ class Graph {
         } else {
             println("no path from $from to $to")
         }
-    }
-
-    fun getPath(from: Int, to: Int, distances: ArrayList<Array<Int>>, next: ArrayList<Array<Int>>,
-                handler: (Int) -> Unit) {
-//        if (next[from - 1][to - 1] != from - 1) {
-//
-//            var current = from - 1
-//            while (current != to - 1) {
-//                handler(current + 1)
-//                current = next[current][to - 1]
-//            }
-//            handler(to)
-//        }
     }
 
     fun floydWarshall() : ArrayList<Array<Int>> {
@@ -603,42 +568,40 @@ class Graph {
     }
 
     fun fordFulkerson(s: Int, t: Int): Int {
-        var u: Int
-        var v: Int
+        val size = adjacencyList.keys.size
+        val residualGraph = ArrayList<Array<Int>>()
 
-        val n = adjacencyList.keys.size
-
-        val rGraph = ArrayList<Array<Int>>()
-
-        for (i in 0 until n) {
-            rGraph.add(Array(n, { 0 }))
+        for (i in 0 until size) {
+            residualGraph.add(Array(size, { 0 }))
         }
 
         adjacencyList.forEach {
             it.value.forEach {
-                rGraph[it.from - 1][it.to - 1] = it.weight
+                residualGraph[it.from - 1][it.to - 1] = it.weight
             }
         }
 
-        val parent = Array(n, { -1 })
+        val parents = Array(size, { -1 })
         var maxFlow = 0
+        var u: Int
+        var v: Int
 
-        while (bfs(rGraph, s, t, parent)) {
+        while (bfs(residualGraph, s, t, parents)) {
             var pathFlow = Integer.MAX_VALUE
 
             v = t
             while (v != s) {
-                u = parent[v - 1]
-                pathFlow = Math.min(pathFlow, rGraph[u - 1][v - 1])
-                v = parent[v - 1]
+                u = parents[v - 1]
+                pathFlow = Math.min(pathFlow, residualGraph[u - 1][v - 1])
+                v = parents[v - 1]
             }
 
             v = t
             while (v != s) {
-                u = parent[v - 1]
-                rGraph[u - 1][v - 1] -= pathFlow
-                rGraph[v - 1][u - 1] += pathFlow
-                v = parent[v - 1]
+                u = parents[v - 1]
+                residualGraph[u - 1][v - 1] -= pathFlow
+                residualGraph[v - 1][u - 1] += pathFlow
+                v = parents[v - 1]
             }
 
             maxFlow += pathFlow
