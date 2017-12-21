@@ -579,6 +579,74 @@ class Graph {
         println("distance between $one and $other - ${distances[one - 1][other - 1]}")
     }
 
+    private fun bfs(rGraph: ArrayList<Array<Int>>, from: Int, to: Int, parent: Array<Int>): Boolean {
+        val used: MutableSet<Int> = mutableSetOf()
+        val queue: Queue<Int> = Queue()
+
+        used.add(from)
+        queue.push(from)
+        parent[from - 1] = -1
+
+        while (!queue.isEmpty()) {
+            val current = queue.pop()
+
+            for (vertex in 1..adjacencyList.keys.size) {
+                if (!used.contains(vertex) && rGraph[current - 1][vertex - 1] > 0) {
+                    queue.push(vertex)
+                    used.add(vertex)
+                    parent[vertex - 1] = current
+                }
+            }
+        }
+
+        return used.contains(to)
+    }
+
+    fun fordFulkerson(s: Int, t: Int): Int {
+        var u: Int
+        var v: Int
+
+        val n = adjacencyList.keys.size
+
+        val rGraph = ArrayList<Array<Int>>()
+
+        for (i in 0 until n) {
+            rGraph.add(Array(n, { 0 }))
+        }
+
+        adjacencyList.forEach {
+            it.value.forEach {
+                rGraph[it.from - 1][it.to - 1] = it.weight
+            }
+        }
+
+        val parent = Array(n, { -1 })
+        var maxFlow = 0
+
+        while (bfs(rGraph, s, t, parent)) {
+            var pathFlow = Integer.MAX_VALUE
+
+            v = t
+            while (v != s) {
+                u = parent[v - 1]
+                pathFlow = Math.min(pathFlow, rGraph[u - 1][v - 1])
+                v = parent[v - 1]
+            }
+
+            v = t
+            while (v != s) {
+                u = parent[v - 1]
+                rGraph[u - 1][v - 1] -= pathFlow
+                rGraph[v - 1][u - 1] += pathFlow
+                v = parent[v - 1]
+            }
+
+            maxFlow += pathFlow
+        }
+
+        return maxFlow
+    }
+
     fun size(): Int = adjacencyList.size
 
     fun show() {
