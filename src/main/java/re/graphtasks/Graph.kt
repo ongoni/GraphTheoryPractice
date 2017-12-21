@@ -539,17 +539,14 @@ class Graph {
 //        }
     }
 
-    fun floydWarshall() : Pair<ArrayList<Array<Int>>, ArrayList<Array<Int>>>{
+    fun floydWarshall() : ArrayList<Array<Int>> {
         val distances = arrayListOf(Array(0, { 0 }))
-        val previous = arrayListOf(Array(0, { 0 }))
         val size = adjacencyList.keys.size
 
         distances.clear()
-        previous.clear()
 
         for (i in 0 until size) {
             distances.add(Array(size, { POSITIVE_INFINITY.toInt() }))
-            previous.add(Array(size, { 0 }))
             distances[i][i] = 0
         }
 
@@ -562,19 +559,24 @@ class Graph {
         for (i in 0 until size) {
             for (j in 0 until size) {
                 for (k in 0 until size) {
-                    if (distances[j][i] + distances[i][k] < distances[j][k] ) {
+                    if (distances[j][i] < POSITIVE_INFINITY.toInt() && distances[i][k] < POSITIVE_INFINITY.toInt()) {
                         distances[j][k] = Math.min(distances[j][k], distances[j][i] + distances[i][k])
-                        previous[j][k] = i
                     }
                 }
             }
         }
 
-        distances.forEach {
-            println(it.toList())
-        }
+//        distances.forEach {
+//            println(it.toList())
+//        }
 
-        return Pair(distances, previous)
+        return distances
+    }
+
+    fun floydDistanceBetween(one: Int, other: Int) {
+        val distances = floydWarshall()
+
+        println("distance between $one and $other - ${distances[one - 1][other - 1]}")
     }
 
     fun size(): Int = adjacencyList.size

@@ -10,8 +10,8 @@ fun main(args: Array<String>) {
 
 //    Application.launch(GraphVisualizationApp::class.java, *args)
 
-//    val pair = graph.floydWarshall()
-//    graph.getPath(1, 4, pair.first, pair.second, { x -> print(x.toString() + " ") })
+    graph.floydDistanceBetween(1, 4)
+    graph.floydDistanceBetween(1, 8)
 
     graph.fordBellman(1, 8, 4)
 }
