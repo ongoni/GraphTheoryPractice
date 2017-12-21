@@ -192,6 +192,22 @@ class Graph {
         }
     }
 
+    fun getDfsOrder(from: Int) : MutableList<Int> {
+        val order = mutableListOf<Int>()
+
+        recursiveDfs(from, { order.add(it) })
+
+        return order
+    }
+
+    fun getBfsOrder(from: Int) : MutableList<Int> {
+        val order = mutableListOf<Int>()
+
+        bfs(from, { order.add(it) })
+
+        return order
+    }
+
     fun getGraphWithRemovedEdgesBetweenOddVertices() : Graph {
         val result = Graph(this)
 
@@ -297,7 +313,7 @@ class Graph {
         return outTimeOrder.keys.toMutableList()
     }
 
-    private fun recursiveDfs(from: Int, handler: (Int) -> Unit) {
+    fun recursiveDfs(from: Int, handler: (Int) -> Unit) {
         used.add(from)
         handler(from)
 
@@ -355,6 +371,37 @@ class Graph {
 
         val result = Graph(newAdjList, this.directed!!, this.weighted)
         return result.union(result.inverted()).sortByKey()
+    }
+
+    fun getPrimOrderedEdges(vertex: Int) : MutableList<Edge> {
+        val orderedEdges = mutableListOf<Edge>()
+        val usedVertices = mutableListOf<Int>()
+        val newAdjList = mutableMapOf<Int, MutableList<Edge>>()
+        val edges: PriorityQueue<Edge> = PriorityQueue(Comparator<Edge> {
+            e1, e2 -> e1!!.weight - e2!!.weight
+        })
+
+        newAdjList.put(vertex, mutableListOf())
+        usedVertices.add(vertex)
+
+        while (usedVertices.size != adjacencyList.keys.size) {
+            adjacencyList.values.forEach {
+                it.forEach {
+                    if (usedVertices.contains(it.from) && !usedVertices.contains(it.to)) {
+                        edges.add(it)
+                    }
+                }
+            }
+
+            val edge = edges.poll()
+            edges.clear()
+
+            orderedEdges.add(edge)
+
+            usedVertices.add(edge.to)
+        }
+
+        return orderedEdges
     }
 
     fun dijkstra(vertex: Int) : Pair<Array<Int>, MutableMap<Int, Int>> {

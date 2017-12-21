@@ -1,9 +1,12 @@
 package re.graphtasks.visualization
 
-import javafx.geometry.Point2D
+import javafx.animation.SequentialTransition
+import javafx.animation.Timeline
+import javafx.scene.effect.DropShadow
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.util.Duration
+import re.graphtasks.Graph
 import tornadofx.*
 
 class GraphView: View() {
@@ -49,6 +52,12 @@ class GraphView: View() {
                     endY = end.y
                     strokeWidth = 5.0
                 }
+                text(edge.weight.toString()) {
+                    fill = Color.ROYALBLUE
+                    x = (start.x + end.x - 10) / 2
+                    y = (start.y + end.y - 10) / 2
+                    font = Font(30.0)
+                }
             }
 
             for (vertex in vertexList) {
@@ -57,19 +66,55 @@ class GraphView: View() {
                     centerY = vertex.y
                     radius = pointRadius
                     fill = pointColor
+                    effect = DropShadow()
                 }
-                text(vertex.id.toString()) {
-                    fill = Color.BLACK
-                    x = vertex.x - 8
-                    y = vertex.y + 10
-                    font = Font(30.0)
+                if (graph.weighted!!) {
+                    text(vertex.id.toString()) {
+                        fill = Color.BLACK
+                        x = vertex.x - 8
+                        y = vertex.y + 10
+                        font = Font(30.0)
+                    }
                 }
             }
+
+            val orderedEdgesWithCoords = mutableListOf<Edge>()
+            val orderedEdges = graph.getPrimOrderedEdges(1)
+            orderedEdges.mapTo(orderedEdgesWithCoords) {
+                Edge(
+                        edge = it,
+                        start = vertexList.first { x -> x.id == it.from },
+                        end = vertexList.first { x -> x.id == it.to }
+                )
+            }
+            var timer = 0.0
+            val timelines = mutableListOf<Timeline>()
+            for (edge in orderedEdgesWithCoords) {
+                val line = line {
+                    startX = edge.start.x
+                    startY = edge.start.y
+                    endX = edge.start.x
+                    endY = edge.start.y
+                    stroke = Color.ORANGERED
+                    strokeWidth = 6.0
+                }
+                timelines.add(
+                        timeline {
+                            keyframe(Duration.seconds(2.0)) {
+                                keyvalue(line.endXProperty(), edge.end.x)
+                                keyvalue(line.endYProperty(), edge.end.y)
+                            }
+                            delay = Duration.seconds(timer)
+                        }
+                )
+                timer += 2.0
+            }
+            val transition = SequentialTransition()
+            timelines.forEach {
+                transition.children.add(it)
+            }
+//            transition.children.addAll(*timelines.toTypedArray())
+            transition.playFromStart()
         }
-
-        val orderedVertices = mutableListOf<Vertex>()
-        graph.dfs(vertices.first(), { orderedVertices.add(vertexList.first { x -> x.id == it }) })
-
-        println()
     }
 }

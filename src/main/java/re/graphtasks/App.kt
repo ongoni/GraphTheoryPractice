@@ -4,12 +4,14 @@ import javafx.application.Application
 import re.graphtasks.visualization.GraphVisualizationApp
 
 fun main(args: Array<String>) {
-    val graph = Graph("graph examples/primGraph.txt", directed = true, weighted = true)
+//    val graph = Graph("graph examples/kosarajuGraph.txt", directed = false, weighted = false)
+//    graph.bfs(1, { print(it.toString() + " ") })
+//    println()
 
-//    Application.launch(GraphVisualizationApp::class.java, *args)
+    Application.launch(GraphVisualizationApp::class.java, *args)
 
 //    val pair = graph.floydWarshall()
 //    graph.getPath(1, 4, pair.first, pair.second, { x -> print(x.toString() + " ") })
 
-    graph.fordBellman(1, 8, 4)
+//    graph.fordBellman(1, 8, 4)
 }
