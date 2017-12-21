@@ -482,7 +482,7 @@ class Graph {
         val distances = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
         val previous = mutableMapOf<Int, Int>()
 
-        distances[vertex - 1] = -1
+        distances[vertex - 1] = 0
         previous[vertex] = -1
 
         while (true) {
@@ -519,7 +519,8 @@ class Graph {
             }
 
             path.reverse()
-            println(path)
+            print(path)
+            println(" with summary ${distances[to - 1]}")
         } else {
             println("no path from $from to $to")
         }
