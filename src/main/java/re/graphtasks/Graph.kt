@@ -484,6 +484,58 @@ class Graph {
         printPathForBellman(vertex, v1, distances, previous)
         printPathForBellman(vertex, v2, distances, previous)
     }
+    
+    fun negativeCycleProtectedFordBellman(vertex: Int, v1: Int, v2: Int){
+        var count = 0
+        val distances = Array(adjacencyList.keys.size, { Double.POSITIVE_INFINITY.toInt() })
+        val previous = mutableMapOf<Int, Int>()
+
+        distances[vertex - 1] = 0
+        previous[vertex] = -1
+
+        while (true) {
+            var x = -1
+            var any = false
+            count++
+
+            adjacencyList.values.forEach {
+                it.forEach {
+                    if (distances[it.from - 1] < Double.POSITIVE_INFINITY.toInt()
+                            && distances[it.to - 1] > distances[it.from - 1] + it.weight) {
+                        distances[it.to - 1] = max(Double. NEGATIVE_INFINITY. toInt(), distances[it.from - 1] + it.weight) 
+                        previous[it.to] = it.from
+                        x = it.to
+                        any = true
+                    }
+                }
+            }
+            if (!any || count > adjacencyList.keys.size) break
+            
+            if (x == -1) {
+                println("no negative cycle found")
+                break
+            } else {
+                var y = x
+                for (i in 1..adjacencyList.size) y = previous[y]!! 
+                
+                val path = mutableListOf<Int>()
+                var current = to
+
+                while (true) {
+                    path.add(current)
+                    current = previous[current]!! 
+                    if (current == y && path.size > 1) break
+                }
+
+                path.reverse()
+                print(path)
+                
+            } 
+        }
+
+        printPathForBellman(vertex, v1, distances, previous)
+        printPathForBellman(vertex, v2, distances, previous)
+    }
 
     private fun printPathForBellman(from: Int, to: Int, distances: Array<Int>, previous: MutableMap<Int, Int>) {
         if (distances[to - 1] != Double.POSITIVE_INFINITY.toInt()) {
